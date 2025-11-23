@@ -3,6 +3,11 @@ import prisma from '../prisma';
 
 const router = Router();
 
+// Генерация уникального ключа доски
+function generateBoardKey(): string {
+  return Math.random().toString(36).substring(2, 8).toUpperCase();
+}
+
 // Get all boards
 router.get('/', async (req, res) => {
   try {
@@ -15,16 +20,10 @@ router.get('/', async (req, res) => {
               orderBy: { position: 'asc' },
               include: {
                 labels: true,
-                checklists: {
-                  include: { items: true }
-                },
-                comments: {
-                  orderBy: { createdAt: 'desc' }
-                },
+                checklists: { include: { items: true } },
+                comments: { orderBy: { createdAt: 'desc' } },
                 links: true,
-                assignees: {
-                  include: { user: true }
-                }
+                assignees: { include: { user: true } }
               }
             }
           }
@@ -51,25 +50,17 @@ router.get('/:id', async (req, res) => {
               orderBy: { position: 'asc' },
               include: {
                 labels: true,
-                checklists: {
-                  include: { items: true }
-                },
-                comments: {
-                  orderBy: { createdAt: 'desc' }
-                },
+                checklists: { include: { items: true } },
+                comments: { orderBy: { createdAt: 'desc' } },
                 links: true,
-                assignees: {
-                  include: { user: true }
-                }
+                assignees: { include: { user: true } }
               }
             }
           }
         }
       }
     });
-    if (!board) {
-      return res.status(404).json({ error: 'Board not found' });
-    }
+    if (!board) return res.status(404).json({ error: 'Board not found' });
     res.json(board);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch board' });
@@ -81,7 +72,12 @@ router.post('/', async (req, res) => {
   try {
     const { title, description, color } = req.body;
     const board = await prisma.board.create({
-      data: { title, description, color }
+      data: {
+        title,
+        description,
+        color,
+        key: generateBoardKey()
+      }
     });
     res.status(201).json(board);
   } catch (error) {
@@ -106,9 +102,7 @@ router.put('/:id', async (req, res) => {
 // Delete board
 router.delete('/:id', async (req, res) => {
   try {
-    await prisma.board.delete({
-      where: { id: req.params.id }
-    });
+    await prisma.board.delete({ where: { id: req.params.id } });
     res.status(204).send();
   } catch (error) {
     res.status(500).json({ error: 'Failed to delete board' });

@@ -3,19 +3,35 @@ import prisma from '../prisma';
 
 const router = Router();
 
+// Вспомогательные функции
+async function getNextCardNumber(listId: string): Promise<number> {
+  const max = await prisma.card.findFirst({
+    where: { listId },
+    orderBy: { number: 'desc' },
+    select: { number: true }
+  });
+  return (max?.number ?? 0) + 1;
+}
+
+async function getBoardKeyByList(listId: string): Promise<string> {
+  const list = await prisma.list.findUnique({
+    where: { id: listId },
+    include: { board: true } // включаем Board
+  });
+  if (!list) throw new Error('List not found');
+  return list.board.key; // теперь берём ключ из Board
+}
+
 // Create card
 router.post('/', async (req, res) => {
   try {
     const { title, description, listId, priority, deadline } = req.body;
 
-    // Get max position
-    const maxPosition = await prisma.card.findFirst({
+    const position = (await prisma.card.findFirst({
       where: { listId },
       orderBy: { position: 'desc' },
       select: { position: true }
-    });
-
-    const position = (maxPosition?.position ?? -1) + 1;
+    }))?.position ?? -1 + 1;
 
     const card = await prisma.card.create({
       data: {
@@ -24,7 +40,9 @@ router.post('/', async (req, res) => {
         listId,
         position,
         priority: priority || 'MEDIUM',
-        deadline: deadline ? new Date(deadline) : null
+        deadline: deadline ? new Date(deadline) : null,
+        number: await getNextCardNumber(listId),
+        boardKey: await getBoardKeyByList(listId)
       },
       include: {
         labels: true,
@@ -71,9 +89,7 @@ router.put('/:id', async (req, res) => {
 // Delete card
 router.delete('/:id', async (req, res) => {
   try {
-    await prisma.card.delete({
-      where: { id: req.params.id }
-    });
+    await prisma.card.delete({ where: { id: req.params.id } });
     res.status(204).send();
   } catch (error) {
     res.status(500).json({ error: 'Failed to delete card' });
@@ -105,19 +121,14 @@ router.post('/:id/move', async (req, res) => {
 router.post('/reorder', async (req, res) => {
   try {
     const { updates } = req.body; // [{ id, position, listId }]
-
     await prisma.$transaction(
       updates.map((update: { id: string; position: number; listId?: string }) =>
         prisma.card.update({
           where: { id: update.id },
-          data: {
-            position: update.position,
-            ...(update.listId && { listId: update.listId })
-          }
+          data: { position: update.position, ...(update.listId && { listId: update.listId }) }
         })
       )
     );
-
     res.status(200).json({ success: true });
   } catch (error) {
     res.status(500).json({ error: 'Failed to reorder cards' });

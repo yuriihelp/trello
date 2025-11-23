@@ -1,8 +1,7 @@
 [Unit]
-Description=Trello Backend Service
-After=network.target docker.service
-Wants=docker.service
-Requires=network.target
+Description=Trello Backend Service (Production)
+After=network.target trello-postgres.service
+Requires=trello-postgres.service
 
 [Service]
 Type=simple
@@ -11,10 +10,13 @@ WorkingDirectory=/trello/backend
 Environment="NODE_ENV=production"
 Environment="DATABASE_URL=postgresql://trello:trello_password@localhost:5432/trello?schema=public"
 Environment="PORT=3223"
-ExecStartPre=/bin/sleep 10
-ExecStart=/usr/bin/npm run dev
+
+# PRODUCTION build must be used — dist/index.js
+ExecStart=/usr/bin/node /trello/backend/dist/index.js
+
 Restart=always
-RestartSec=10
+RestartSec=5
+
 StandardOutput=append:/var/log/trello-backend.log
 StandardError=append:/var/log/trello-backend.log
 

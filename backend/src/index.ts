@@ -8,6 +8,7 @@ import checklistRoutes from './routes/checklists';
 import commentRoutes from './routes/comments';
 import linkRoutes from './routes/links';
 import labelRoutes from './routes/labels';
+import userRoutes from './routes/users';
 
 dotenv.config();
 
@@ -25,6 +26,7 @@ app.use('/api/checklists', checklistRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/links', linkRoutes);
 app.use('/api/labels', labelRoutes);
+app.use('/api/users', userRoutes);
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });

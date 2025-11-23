@@ -49,6 +49,24 @@ export interface Link {
   createdAt: string;
 }
 
+export interface User {
+  id: string;
+  name: string;
+  email?: string;
+  avatar?: string;
+  color: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CardAssignee {
+  id: string;
+  cardId: string;
+  userId: string;
+  user: User;
+  assignedAt: string;
+}
+
 export interface Card {
   id: string;
   title: string;
@@ -61,6 +79,7 @@ export interface Card {
   checklists: Checklist[];
   comments: Comment[];
   links: Link[];
+  assignees: CardAssignee[];
   createdAt: string;
   updatedAt: string;
 }

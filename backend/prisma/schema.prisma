@@ -31,20 +31,21 @@ model List {
 }
 
 model Card {
-  id          String      @id @default(uuid())
+  id          String         @id @default(uuid())
   title       String
   description String?
   position    Int
-  priority    Priority    @default(MEDIUM)
+  priority    Priority       @default(MEDIUM)
   deadline    DateTime?
   listId      String
-  list        List        @relation(fields: [listId], references: [id], onDelete: Cascade)
+  list        List           @relation(fields: [listId], references: [id], onDelete: Cascade)
   labels      Label[]
   checklists  Checklist[]
   comments    Comment[]
   links       Link[]
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  assignees   CardAssignee[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 
   @@index([listId])
 }
@@ -106,6 +107,30 @@ model Link {
   createdAt DateTime @default(now())
 
   @@index([cardId])
+}
+
+model User {
+  id        String         @id @default(uuid())
+  name      String
+  email     String?        @unique
+  avatar    String?
+  color     String         @default("#3B82F6")
+  cards     CardAssignee[]
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+}
+
+model CardAssignee {
+  id         String   @id @default(uuid())
+  cardId     String
+  userId     String
+  card       Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assignedAt DateTime @default(now())
+
+  @@unique([cardId, userId])
+  @@index([cardId])
+  @@index([userId])
 }
 
 enum Priority {

@@ -180,19 +180,19 @@ export default function BoardView({ board, onUpdate }: Props) {
             {/* Add List Button */}
             <div className="flex-shrink-0 w-72">
               {showNewList ? (
-                <form onSubmit={handleCreateList} className="bg-list-bg p-3 rounded-lg">
+                <form onSubmit={handleCreateList} className="bg-list-bg p-3 rounded-lg shadow-sm">
                   <input
                     type="text"
                     value={newListTitle}
                     onChange={(e) => setNewListTitle(e.target.value)}
                     placeholder="Название колонки..."
-                    className="w-full px-3 py-2 mb-2 rounded border-2 border-blue-500 focus:outline-none"
+                    className="w-full px-3 py-2 mb-2 rounded border-2 border-dark-blue focus:outline-none focus:ring-2 focus:ring-dark-blue-hover"
                     autoFocus
                   />
                   <div className="flex gap-2">
                     <button
                       type="submit"
-                      className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded transition"
+                      className="bg-dark-blue hover:bg-dark-blue-hover text-white px-4 py-1 rounded transition"
                     >
                       Добавить
                     </button>
@@ -208,7 +208,7 @@ export default function BoardView({ board, onUpdate }: Props) {
               ) : (
                 <button
                   onClick={() => setShowNewList(true)}
-                  className="w-full bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white p-3 rounded-lg flex items-center gap-2 transition"
+                  className="w-full bg-list-bg hover:bg-gray-200 border border-gray-300 text-gray-700 p-3 rounded-lg flex items-center gap-2 transition shadow-sm"
                 >
                   <Plus size={20} />
                   <span>Добавить колонку</span>

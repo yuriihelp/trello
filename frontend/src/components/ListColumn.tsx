@@ -45,7 +45,7 @@ export default function ListColumn({ list, onRefresh }: Props) {
   };
 
   return (
-    <div ref={setNodeRef} className="flex-shrink-0 w-72 bg-list-bg rounded-lg p-3 flex flex-col max-h-full">
+    <div ref={setNodeRef} className="flex-shrink-0 w-72 bg-list-bg rounded-lg p-3 flex flex-col max-h-full shadow-sm border border-gray-200">
       {/* List Header */}
       <div className="flex items-center justify-between mb-3">
         {isEditing ? (
@@ -55,7 +55,7 @@ export default function ListColumn({ list, onRefresh }: Props) {
             onChange={(e) => setEditTitle(e.target.value)}
             onBlur={handleUpdateTitle}
             onKeyDown={(e) => e.key === 'Enter' && handleUpdateTitle()}
-            className="flex-1 px-2 py-1 rounded border-2 border-blue-500 focus:outline-none"
+            className="flex-1 px-2 py-1 rounded border-2 border-dark-blue focus:outline-none focus:ring-2 focus:ring-dark-blue-hover"
             autoFocus
           />
         ) : (
@@ -95,14 +95,14 @@ export default function ListColumn({ list, onRefresh }: Props) {
             value={newCardTitle}
             onChange={(e) => setNewCardTitle(e.target.value)}
             placeholder="Введите название задачи..."
-            className="w-full px-3 py-2 mb-2 rounded border-2 border-blue-500 focus:outline-none resize-none"
+            className="w-full px-3 py-2 mb-2 rounded border-2 border-dark-blue focus:outline-none focus:ring-2 focus:ring-dark-blue-hover resize-none"
             rows={3}
             autoFocus
           />
           <div className="flex gap-2">
             <button
               type="submit"
-              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded transition"
+              className="bg-dark-blue hover:bg-dark-blue-hover text-white px-4 py-1 rounded transition"
             >
               Добавить
             </button>
@@ -118,7 +118,7 @@ export default function ListColumn({ list, onRefresh }: Props) {
       ) : (
         <button
           onClick={() => setShowNewCard(true)}
-          className="w-full bg-white/50 hover:bg-white/80 text-gray-700 p-2 rounded flex items-center gap-2 transition"
+          className="w-full bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 p-2 rounded flex items-center gap-2 transition"
         >
           <Plus size={18} />
           <span>Добавить карточку</span>

@@ -1,4 +1,4 @@
-import type { Board, List, Card, Checklist, ChecklistItem, Comment, Link, Label, Priority } from './types';
+import type { Board, List, Card, Checklist, ChecklistItem, Comment, Link, Label, Priority, User, CardAssignee } from './types';
 
 const API_URL = '/api';
 
@@ -224,4 +224,44 @@ export const updateLabel = async (id: string, data: { name: string; color: strin
 
 export const deleteLabel = async (id: string): Promise<void> => {
   await fetch(`${API_URL}/labels/${id}`, { method: 'DELETE' });
+};
+
+// Users
+export const getUsers = async (): Promise<User[]> => {
+  const res = await fetch(`${API_URL}/users`);
+  return res.json();
+};
+
+export const createUser = async (data: { name: string; email?: string; avatar?: string; color?: string }): Promise<User> => {
+  const res = await fetch(`${API_URL}/users`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  return res.json();
+};
+
+export const updateUser = async (id: string, data: Partial<User>): Promise<User> => {
+  const res = await fetch(`${API_URL}/users/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  return res.json();
+};
+
+export const deleteUser = async (id: string): Promise<void> => {
+  await fetch(`${API_URL}/users/${id}`, { method: 'DELETE' });
+};
+
+export const assignUserToCard = async (userId: string, cardId: string): Promise<CardAssignee> => {
+  const res = await fetch(`${API_URL}/users/${userId}/assign/${cardId}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  return res.json();
+};
+
+export const unassignUserFromCard = async (userId: string, cardId: string): Promise<void> => {
+  await fetch(`${API_URL}/users/${userId}/unassign/${cardId}`, { method: 'DELETE' });
 };

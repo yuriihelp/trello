@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import type { Card, Priority } from '../types';
+import { useState, useEffect } from 'react';
+import type { Card, Priority, User } from '../types';
 import {
   updateCard,
   deleteCard,
@@ -13,7 +13,10 @@ import {
   createLink,
   deleteLink,
   createLabel,
-  deleteLabel
+  deleteLabel,
+  getUsers,
+  assignUserToCard,
+  unassignUserFromCard
 } from '../api';
 import {
   X,
@@ -24,7 +27,8 @@ import {
   Link as LinkIcon,
   Plus,
   Trash2,
-  AlertCircle
+  AlertCircle,
+  UserPlus
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -76,6 +80,28 @@ export default function CardModal({ card, onClose, onRefresh }: Props) {
   // Labels
   const [newLabelName, setNewLabelName] = useState('');
   const [newLabelColor, setNewLabelColor] = useState(labelColors[0]);
+
+  // Users
+  const [allUsers, setAllUsers] = useState<User[]>([]);
+
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  const loadUsers = async () => {
+    const users = await getUsers();
+    setAllUsers(users);
+  };
+
+  const handleAssignUser = async (userId: string) => {
+    await assignUserToCard(userId, card.id);
+    await onRefresh();
+  };
+
+  const handleUnassignUser = async (userId: string) => {
+    await unassignUserFromCard(userId, card.id);
+    await onRefresh();
+  };
 
   const handleSave = async () => {
     await updateCard(card.id, {
@@ -463,6 +489,65 @@ export default function CardModal({ card, onClose, onRefresh }: Props) {
                 onBlur={handleSave}
                 className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
+            </div>
+
+            {/* Assigned Users */}
+            <div>
+              <h3 className="font-semibold mb-2 flex items-center gap-2">
+                <UserPlus size={18} />
+                Назначенные
+              </h3>
+
+              {/* Current Assignees */}
+              <div className="flex flex-wrap gap-2 mb-3">
+                {card.assignees && card.assignees.map((assignee) => (
+                  <div
+                    key={assignee.id}
+                    className="flex items-center gap-2 px-3 py-1 rounded-lg border border-gray-200"
+                  >
+                    <div
+                      className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-medium"
+                      style={{ backgroundColor: assignee.user.color }}
+                    >
+                      {assignee.user.name.charAt(0).toUpperCase()}
+                    </div>
+                    <span className="text-sm">{assignee.user.name}</span>
+                    <button
+                      onClick={() => handleUnassignUser(assignee.userId)}
+                      className="hover:bg-gray-100 rounded p-0.5"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              {/* Available Users */}
+              <div className="space-y-1">
+                {allUsers
+                  .filter((user) => !card.assignees?.some((a) => a.userId === user.id))
+                  .map((user) => (
+                    <button
+                      key={user.id}
+                      onClick={() => handleAssignUser(user.id)}
+                      className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 rounded-lg transition text-left"
+                    >
+                      <div
+                        className="w-7 h-7 rounded-full flex items-center justify-center text-white text-sm font-medium"
+                        style={{ backgroundColor: user.color }}
+                      >
+                        {user.name.charAt(0).toUpperCase()}
+                      </div>
+                      <span className="text-sm">{user.name}</span>
+                    </button>
+                  ))}
+              </div>
+
+              {allUsers.length === 0 && (
+                <p className="text-sm text-gray-500 italic">
+                  Нет доступных пользователей
+                </p>
+              )}
             </div>
 
             {/* Labels */}

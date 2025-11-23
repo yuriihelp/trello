@@ -30,7 +30,8 @@ router.post('/', async (req, res) => {
         labels: true,
         checklists: { include: { items: true } },
         comments: true,
-        links: true
+        links: true,
+        assignees: { include: { user: true } }
       }
     });
     res.status(201).json(card);
@@ -57,7 +58,8 @@ router.put('/:id', async (req, res) => {
         labels: true,
         checklists: { include: { items: true } },
         comments: true,
-        links: true
+        links: true,
+        assignees: { include: { user: true } }
       }
     });
     res.json(card);
@@ -89,7 +91,8 @@ router.post('/:id/move', async (req, res) => {
         labels: true,
         checklists: { include: { items: true } },
         comments: true,
-        links: true
+        links: true,
+        assignees: { include: { user: true } }
       }
     });
     res.json(card);

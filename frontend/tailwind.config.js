@@ -7,14 +7,16 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: '#0079BF',
-        secondary: '#5E6C84',
-        success: '#61BD4F',
-        danger: '#EB5A46',
-        warning: '#F2D600',
+        primary: '#1E3A8A',
+        secondary: '#475569',
+        success: '#10B981',
+        danger: '#EF4444',
+        warning: '#F59E0B',
         'card-bg': '#FFFFFF',
-        'list-bg': '#EBECF0',
-        'board-bg': '#0079BF',
+        'list-bg': '#F1F5F9',
+        'board-bg': '#F8FAFC',
+        'dark-blue': '#1E3A8A',
+        'dark-blue-hover': '#1E40AF',
       }
     },
   },

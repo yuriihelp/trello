@@ -83,6 +83,32 @@ export default function CardItem({ card, isDragging }: Props) {
         </span>
       </div>
 
+      {/* Assigned Users */}
+      {card.assignees && card.assignees.length > 0 && (
+        <div className="flex items-center gap-1 mb-2">
+          <div className="flex -space-x-2">
+            {card.assignees.slice(0, 3).map((assignee) => (
+              <div
+                key={assignee.id}
+                className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-medium border-2 border-white"
+                style={{ backgroundColor: assignee.user.color }}
+                title={assignee.user.name}
+              >
+                {assignee.user.name.charAt(0).toUpperCase()}
+              </div>
+            ))}
+            {card.assignees.length > 3 && (
+              <div
+                className="w-6 h-6 rounded-full flex items-center justify-center bg-gray-400 text-white text-xs font-medium border-2 border-white"
+                title={`+${card.assignees.length - 3} more`}
+              >
+                +{card.assignees.length - 3}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Meta info */}
       <div className="flex flex-wrap gap-3 text-xs text-gray-600">
         {card.deadline && (

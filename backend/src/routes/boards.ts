@@ -21,7 +21,10 @@ router.get('/', async (req, res) => {
                 comments: {
                   orderBy: { createdAt: 'desc' }
                 },
-                links: true
+                links: true,
+                assignees: {
+                  include: { user: true }
+                }
               }
             }
           }
@@ -54,7 +57,10 @@ router.get('/:id', async (req, res) => {
                 comments: {
                   orderBy: { createdAt: 'desc' }
                 },
-                links: true
+                links: true,
+                assignees: {
+                  include: { user: true }
+                }
               }
             }
           }

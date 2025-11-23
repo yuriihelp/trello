@@ -25,9 +25,9 @@ services:
     container_name: trello-backend
     environment:
       DATABASE_URL: "postgresql://trello:trello_password@postgres:5432/trello?schema=public"
-      PORT: 3001
+      PORT: 3223
     ports:
-      - "3001:3001"
+      - "3223:3223"
     depends_on:
       postgres:
         condition: service_healthy
@@ -42,14 +42,14 @@ services:
       dockerfile: Dockerfile
     container_name: trello-frontend
     ports:
-      - "3000:3000"
+      - "3224:3000"
     depends_on:
       - backend
     volumes:
       - ./frontend:/app
       - /app/node_modules
     environment:
-      - VITE_API_URL=http://localhost:3001
+      - VITE_API_URL=http://localhost:3223
 
 volumes:
   postgres_data:

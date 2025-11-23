@@ -63,7 +63,7 @@ npm install
 npm run dev
 ```
 
-Backend запустится на http://localhost:3001
+Backend запустится на http://localhost:3223
 
 ### 5. Установите зависимости и запустите Frontend
 ```bash
@@ -72,10 +72,10 @@ npm install
 npm run dev
 ```
 
-Frontend запустится на http://localhost:3000
+Frontend запустится на http://localhost:3224
 
 ### 6. Откройте приложение
-Перейдите в браузере на http://localhost:3000
+Перейдите в браузере на http://localhost:3224
 
 ## ⚠️ Важно: Почему Backend не в Docker?
 
@@ -295,9 +295,10 @@ docker-compose -f docker-compose.prod.yml up -d
 **Симптомы:** `curl http://localhost:3001/health` возвращает "Connection refused"
 
 **Решение:**
-1. Убедитесь, что вы запустили backend через `cd backend && npm run dev`
-2. Проверьте, что порт 3001 не занят: `lsof -i :3001`
+1. Убедитесь, что вы запустили backend через `cd backend && npm run dev` и НЕ останавливали его (Ctrl+C)
+2. Проверьте, что порт 3223 не занят: `lsof -i :3223`
 3. Проверьте логи backend на ошибки
+4. Убедитесь, что в backend/.env правильные credentials для БД
 
 ### База данных пуста
 **Симптомы:** Ошибка "relation 'Board' does not exist" или таблицы не найдены
@@ -326,8 +327,8 @@ docker compose exec postgres psql -U trello -d trello -c "\dt"
 **Симптомы:** Ошибки "Failed to fetch" в консоли браузера
 
 **Решение:**
-1. Убедитесь, что backend запущен: `curl http://localhost:3001/health`
-2. Проверьте, что в `frontend/src/api.ts` правильный URL: `http://localhost:3001/api`
+1. Убедитесь, что backend запущен: `curl http://localhost:3223/health`
+2. Проверьте, что в `frontend/vite.config.ts` правильный proxy: `http://localhost:3223`
 
 ### Prisma ошибки в Docker
 **Симптомы:** "Prisma failed to detect the libssl/openssl version"

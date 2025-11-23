@@ -10,8 +10,10 @@ datasource db {
 model Board {
   id          String   @id @default(uuid())
   title       String
+  key         String   @unique // JIRA-style key (e.g., "PROJ")
   description String?
   color       String   @default("#0079BF")
+  cardCounter Int      @default(0) // Auto-increment counter for cards
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   lists       List[]
@@ -32,6 +34,8 @@ model List {
 
 model Card {
   id          String         @id @default(uuid())
+  number      Int            // Card number within board (e.g., 123 in "PROJ-123")
+  boardKey    String         // Denormalized board key for easy access
   title       String
   description String?
   position    Int
@@ -47,6 +51,7 @@ model Card {
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 
+  @@unique([boardKey, number]) // Ensure unique card numbers per board
   @@index([listId])
 }
 

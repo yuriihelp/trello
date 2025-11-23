@@ -1,0 +1,22 @@
+[Unit]
+Description=Trello Backend Service
+After=network.target docker.service
+Wants=docker.service
+Requires=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/trello/backend
+Environment="NODE_ENV=production"
+Environment="DATABASE_URL=postgresql://trello:trello_password@localhost:5432/trello?schema=public"
+Environment="PORT=3223"
+ExecStartPre=/bin/sleep 10
+ExecStart=/usr/bin/npm run dev
+Restart=always
+RestartSec=10
+StandardOutput=append:/var/log/trello-backend.log
+StandardError=append:/var/log/trello-backend.log
+
+[Install]
+WantedBy=multi-user.target

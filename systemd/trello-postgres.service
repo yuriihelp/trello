@@ -1,0 +1,16 @@
+[Unit]
+Description=Trello PostgreSQL Container
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/trello
+ExecStart=/usr/bin/docker compose up -d postgres
+ExecStop=/usr/bin/docker compose stop postgres
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: trello-db-prod
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-trello}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-trello_password}
+      POSTGRES_DB: ${POSTGRES_DB:-trello}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - trello-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-trello}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    container_name: trello-backend-prod
+    restart: always
+    environment:
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-trello}:${POSTGRES_PASSWORD:-trello_password}@postgres:5432/${POSTGRES_DB:-trello}?schema=public"
+      PORT: 3001
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - trello-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    container_name: trello-frontend-prod
+    restart: always
+    ports:
+      - "${PORT:-80}:80"
+    depends_on:
+      - backend
+    networks:
+      - trello-network
+
+volumes:
+  postgres_data:
+
+networks:
+  trello-network:
+    driver: bridge

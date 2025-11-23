@@ -1,0 +1,116 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Board {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  color       String   @default("#0079BF")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  lists       List[]
+}
+
+model List {
+  id        String   @id @default(uuid())
+  title     String
+  position  Int
+  boardId   String
+  board     Board    @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  cards     Card[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([boardId])
+}
+
+model Card {
+  id          String      @id @default(uuid())
+  title       String
+  description String?
+  position    Int
+  priority    Priority    @default(MEDIUM)
+  deadline    DateTime?
+  listId      String
+  list        List        @relation(fields: [listId], references: [id], onDelete: Cascade)
+  labels      Label[]
+  checklists  Checklist[]
+  comments    Comment[]
+  links       Link[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([listId])
+}
+
+model Label {
+  id        String   @id @default(uuid())
+  name      String
+  color     String
+  cardId    String
+  card      Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([cardId])
+}
+
+model Checklist {
+  id        String         @id @default(uuid())
+  title     String
+  cardId    String
+  card      Card           @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  items     ChecklistItem[]
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@index([cardId])
+}
+
+model ChecklistItem {
+  id          String    @id @default(uuid())
+  text        String
+  completed   Boolean   @default(false)
+  position    Int
+  checklistId String
+  checklist   Checklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([checklistId])
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  text      String
+  author    String?
+  cardId    String
+  card      Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([cardId])
+}
+
+model Link {
+  id        String   @id @default(uuid())
+  title     String?
+  url       String
+  cardId    String
+  card      Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([cardId])
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}

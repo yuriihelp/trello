@@ -6,6 +6,7 @@
 
 - ✅ **Доски и колонки** - организуйте проекты по доскам с гибкими колонками
 - 🎯 **Карточки задач** - создавайте задачи с описанием, приоритетами и дедлайнами
+- 👥 **Управление пользователями** - создавайте пользователей и назначайте их на задачи
 - 🏷️ **Метки** - категоризируйте задачи с помощью цветных меток
 - ⚡ **Приоритеты** - 4 уровня приоритета (Низкий, Средний, Высокий, Критичный)
 - 📅 **Дедлайны** - отслеживайте сроки выполнения задач
@@ -13,6 +14,7 @@
 - 💬 **Комментарии** - обсуждайте задачи прямо в карточках
 - 🔗 **Ссылки** - прикрепляйте внешние ресурсы к задачам
 - 🎨 **Drag & Drop** - перетаскивайте карточки между колонками
+- 🎨 **Темная синяя тема** - приятная цветовая схема с темно-синими акцентами
 
 ## Технологии
 
@@ -30,26 +32,54 @@
 - @dnd-kit (Drag & Drop)
 - Zustand (State Management)
 
-## Быстрый старт
+## 🚀 Быстрый старт (Рекомендуемый способ)
 
-### С помощью Docker (Рекомендуется)
-
-1. Убедитесь, что у вас установлен Docker и Docker Compose
-
-2. Клонируйте репозиторий и перейдите в директорию:
+### 1. Запустите PostgreSQL через Docker
 ```bash
-cd trello
+docker compose up -d postgres
 ```
 
-3. Запустите приложение:
+### 2. Инициализируйте базу данных
 ```bash
-docker-compose up -d
+./setup-database.sh
 ```
 
-4. Откройте в браузере:
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:3001
-- Database: localhost:5432
+Или вручную:
+```bash
+cat init-database.sql | docker compose exec -T postgres psql -U trello -d trello
+```
+
+### 3. Проверьте создание таблиц
+```bash
+docker compose exec postgres psql -U trello -d trello -c "\dt"
+```
+
+Должно быть 11 таблиц: Board, List, Card, Label, Checklist, ChecklistItem, Comment, Link, User, CardAssignee
+
+### 4. Установите зависимости и запустите Backend
+```bash
+cd backend
+npm install
+npm run dev
+```
+
+Backend запустится на http://localhost:3001
+
+### 5. Установите зависимости и запустите Frontend
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Frontend запустится на http://localhost:3000
+
+### 6. Откройте приложение
+Перейдите в браузере на http://localhost:3000
+
+## ⚠️ Важно: Почему Backend не в Docker?
+
+Backend запускается локально (не через Docker) из-за несовместимости Prisma с OpenSSL в Alpine контейнерах. Это временное решение для разработки. PostgreSQL остается в Docker для удобства.
 
 ### Локальная разработка (без Docker)
 
@@ -163,6 +193,14 @@ trello/
 - `PUT /api/labels/:id` - обновить метку
 - `DELETE /api/labels/:id` - удалить метку
 
+### Users
+- `GET /api/users` - получить всех пользователей
+- `POST /api/users` - создать пользователя
+- `PUT /api/users/:id` - обновить пользователя
+- `DELETE /api/users/:id` - удалить пользователя
+- `POST /api/users/:userId/assign/:cardId` - назначить пользователя на карточку
+- `DELETE /api/users/:userId/unassign/:cardId` - снять пользователя с карточки
+
 ## Развертывание на сервере
 
 ### Production с Docker
@@ -251,6 +289,51 @@ CMD ["nginx", "-g", "daemon off;"]
 docker-compose -f docker-compose.prod.yml up -d
 ```
 
+## 🔧 Устранение неполадок
+
+### Backend не запускается
+**Симптомы:** `curl http://localhost:3001/health` возвращает "Connection refused"
+
+**Решение:**
+1. Убедитесь, что вы запустили backend через `cd backend && npm run dev`
+2. Проверьте, что порт 3001 не занят: `lsof -i :3001`
+3. Проверьте логи backend на ошибки
+
+### База данных пуста
+**Симптомы:** Ошибка "relation 'Board' does not exist" или таблицы не найдены
+
+**Решение:**
+```bash
+# Применить полную инициализацию
+./setup-database.sh
+
+# Или вручную
+cat init-database.sql | docker compose exec -T postgres psql -U trello -d trello
+
+# Проверить результат
+docker compose exec postgres psql -U trello -d trello -c "\dt"
+```
+
+### 500 ошибки в API
+**Симптомы:** Frontend показывает 500 Internal Server Error
+
+**Причины и решения:**
+1. **База данных не инициализирована** - запустите `./setup-database.sh`
+2. **Backend не подключается к БД** - проверьте DATABASE_URL в `backend/.env`
+3. **Таблицы отсутствуют** - примените init-database.sql
+
+### Frontend не может подключиться к Backend
+**Симптомы:** Ошибки "Failed to fetch" в консоли браузера
+
+**Решение:**
+1. Убедитесь, что backend запущен: `curl http://localhost:3001/health`
+2. Проверьте, что в `frontend/src/api.ts` правильный URL: `http://localhost:3001/api`
+
+### Prisma ошибки в Docker
+**Симптомы:** "Prisma failed to detect the libssl/openssl version"
+
+**Решение:** Это известная проблема. Запускайте backend локально, а не через Docker.
+
 ## База данных
 
 Схема базы данных включает:
@@ -262,6 +345,13 @@ docker-compose -f docker-compose.prod.yml up -d
 - **ChecklistItem** - пункты чеклистов
 - **Comment** - комментарии к карточкам
 - **Link** - ссылки в карточках
+- **User** - пользователи системы
+- **CardAssignee** - назначения пользователей на карточки
+
+### Connection String
+```
+DATABASE_URL="postgresql://trello:trello@localhost:5432/trello"
+```
 
 ## Лицензия
 

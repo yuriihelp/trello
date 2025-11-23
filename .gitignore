@@ -4,6 +4,7 @@ build
 .env
 .env.local
 *.log
+*.pid
 .DS_Store
 coverage
 .vscode

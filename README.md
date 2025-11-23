@@ -32,14 +32,49 @@
 - @dnd-kit (Drag & Drop)
 - Zustand (State Management)
 
-## 🚀 Быстрый старт (Рекомендуемый способ)
+## 🚀 Быстрый старт
 
-### 1. Запустите PostgreSQL через Docker
+### Вариант 1: Автоматический запуск (Рекомендуется)
+
+Один скрипт запустит все компоненты:
+
+```bash
+./run-local.sh
+```
+
+Скрипт автоматически:
+- ✅ Запустит PostgreSQL в Docker
+- ✅ Инициализирует базу данных
+- ✅ Установит зависимости (если нужно)
+- ✅ Запустит Backend на порту 3223
+- ✅ Запустит Frontend на порту 3000
+
+После запуска откройте: **http://localhost:3000**
+
+Для остановки всех сервисов:
+```bash
+./stop-local.sh
+```
+
+**Логи:**
+```bash
+# Backend
+tail -f backend.log
+
+# Frontend
+tail -f frontend.log
+```
+
+---
+
+### Вариант 2: Ручной запуск
+
+#### 1. Запустите PostgreSQL через Docker
 ```bash
 docker compose up -d postgres
 ```
 
-### 2. Инициализируйте базу данных
+#### 2. Инициализируйте базу данных
 ```bash
 ./setup-database.sh
 ```
@@ -49,33 +84,61 @@ docker compose up -d postgres
 cat init-database.sql | docker compose exec -T postgres psql -U trello -d trello
 ```
 
-### 3. Проверьте создание таблиц
+#### 3. Проверьте создание таблиц
 ```bash
 docker compose exec postgres psql -U trello -d trello -c "\dt"
 ```
 
-Должно быть 11 таблиц: Board, List, Card, Label, Checklist, ChecklistItem, Comment, Link, User, CardAssignee
+Должно быть 10 таблиц: Board, List, Card, Label, Checklist, ChecklistItem, Comment, Link, User, CardAssignee
 
-### 4. Установите зависимости и запустите Backend
+#### 4. Запустите Backend (в отдельном терминале)
 ```bash
 cd backend
-npm install
+npm install  # первый раз
+npx prisma generate  # первый раз
 npm run dev
 ```
 
 Backend запустится на http://localhost:3223
 
-### 5. Установите зависимости и запустите Frontend
+#### 5. Запустите Frontend (в другом терминале)
 ```bash
 cd frontend
-npm install
+npm install  # первый раз
 npm run dev
 ```
 
-Frontend запустится на http://localhost:3224
+Frontend запустится на http://localhost:3000
 
-### 6. Откройте приложение
-Перейдите в браузере на http://localhost:3224
+#### 6. Откройте приложение
+Перейдите в браузере на **http://localhost:3000**
+
+---
+
+## 🧪 Тестирование
+
+После запуска приложения выполните ручные тесты для проверки всех компонентов:
+
+📝 **[MANUAL_TESTS.md](./MANUAL_TESTS.md)** - полное руководство по тестированию
+
+Быстрая проверка:
+```bash
+# 1. PostgreSQL
+docker compose exec postgres psql -U trello -d trello -c "\dt"
+
+# 2. Backend
+curl http://localhost:3223/health
+
+# 3. Frontend
+curl -s http://localhost:3000 | head -n 1
+```
+
+**Ожидаемый результат:**
+- ✅ 10 таблиц в БД
+- ✅ `{"status":"ok"}` от backend
+- ✅ `<!doctype html>` от frontend
+
+---
 
 ## ⚠️ Важно: Почему Backend не в Docker?
 

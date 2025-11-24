@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link as LinkIcon, X, Plus, AlertCircle, GitBranch } from 'lucide-react';
+import { X, Plus, AlertCircle, GitBranch } from 'lucide-react';
 import type { CardRelation, RelationType } from '../types';
 import { getCardRelations, createCardRelation, deleteCardRelation } from '../api';
 import { useStore } from '../store';
@@ -32,7 +32,7 @@ export default function CardRelations({ cardId, onRefresh }: Props) {
     relationsTo: []
   });
   const [showAddForm, setShowAddForm] = useState(false);
-  const [selectedType, setSelectedType] = useState<RelationType>('BLOCKS');
+  const [selectedType, setSelectedType] = useState<RelationType>(RelationType.BLOCKS);
   const [taskNumber, setTaskNumber] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');

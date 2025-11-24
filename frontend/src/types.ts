@@ -69,6 +69,8 @@ export interface CardAssignee {
 
 export interface Card {
   id: string;
+  number: number;
+  boardKey: string;
   title: string;
   description?: string;
   position: number;

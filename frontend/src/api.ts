@@ -105,11 +105,24 @@ export const moveCard = async (id: string, listId: string, position: number): Pr
 };
 
 export const reorderCards = async (updates: { id: string; position: number; listId?: string }[]): Promise<void> => {
-  await fetch(`${API_URL}/cards/reorder`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ updates })
-  });
+  try {
+    const res = await fetch(`${API_URL}/cards/reorder`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ updates })
+    });
+
+    if (!res.ok) {
+      const error = await res.text();
+      console.error('❌ Failed to reorder cards:', res.status, error);
+      throw new Error(`Failed to reorder cards: ${res.status}`);
+    }
+
+    console.log('✅ API reorderCards успешно выполнен');
+  } catch (error) {
+    console.error('❌ Error in reorderCards API:', error);
+    throw error;
+  }
 };
 
 // Checklists

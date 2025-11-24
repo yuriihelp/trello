@@ -139,8 +139,10 @@ export default function BoardView({ board, onUpdate, filters = {} }: Props) {
           position: index
         }));
 
+        console.log('🔄 Reordering cards in same list:', updates);
         await reorderCards(updates);
         await refreshBoard();
+        console.log('✅ Cards reordered successfully');
       }
     } else {
       const updates = [
@@ -154,8 +156,10 @@ export default function BoardView({ board, onUpdate, filters = {} }: Props) {
         { id: activeId, position: overIndex >= 0 ? overIndex : overList.cards.length, listId: overList.id }
       ];
 
+      console.log('🔄 Moving card between lists:', updates);
       await reorderCards(updates);
       await refreshBoard();
+      console.log('✅ Card moved successfully');
     }
   };
 

@@ -40,20 +40,45 @@ function App() {
     }
   }, [boards]);
 
-  // Load card from URL on board load
+  // Load card from URL when board changes
   useEffect(() => {
+    if (!currentBoard) return;
+
     const params = new URLSearchParams(window.location.search);
     const cardId = params.get('card');
 
-    if (cardId && currentBoard && !selectedCard) {
+    if (cardId) {
       const card = currentBoard.lists
         .flatMap(list => list.cards)
         .find(c => c.id === cardId);
 
-      if (card) {
+      if (card && (!selectedCard || selectedCard.id !== cardId)) {
         setSelectedCard(card);
       }
     }
+  }, [currentBoard]);
+
+  // Listen for browser back/forward navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const cardId = params.get('card');
+
+      if (cardId && currentBoard) {
+        const card = currentBoard.lists
+          .flatMap(list => list.cards)
+          .find(c => c.id === cardId);
+
+        if (card) {
+          setSelectedCard(card);
+        }
+      } else {
+        setSelectedCard(null);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, [currentBoard]);
 
   // Update URL when card is opened/closed
@@ -159,14 +184,16 @@ function App() {
   return (
     <div className="h-screen flex flex-col bg-board-bg">
       {/* Header */}
-      <header className="bg-dark-blue text-white p-4 flex items-center gap-4 shadow-md">
-        <h1 className="text-2xl font-bold">Task Board</h1>
+      <header className="bg-dark-blue text-white p-3 md:p-4 flex items-center gap-2 md:gap-4 shadow-md flex-wrap">
+        <h1 className="text-xl md:text-2xl font-bold">TAKTA</h1>
 
-        <BoardSelector onBoardSelect={handleBoardSelect} />
+        <div className="w-full sm:w-auto order-3 sm:order-none mt-2 sm:mt-0">
+          <BoardSelector onBoardSelect={handleBoardSelect} />
+        </div>
 
         {/* Editable Board Title */}
         {currentBoard && (
-          <div className="flex items-center gap-2">
+          <div className="hidden md:flex items-center gap-2">
             {editingBoardTitle ? (
               <>
                 <input
@@ -205,17 +232,17 @@ function App() {
           </div>
         )}
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-1 md:gap-2">
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
+            className={`flex items-center gap-1 md:gap-2 px-2 md:px-4 py-2 rounded-lg transition ${
               hasActiveFilters || showFilters
                 ? 'bg-blue-600 hover:bg-blue-700'
                 : 'bg-dark-blue-hover hover:bg-blue-700'
             }`}
           >
-            <FilterIcon size={20} />
-            <span>Фильтры</span>
+            <FilterIcon size={18} className="md:w-5 md:h-5" />
+            <span className="hidden sm:inline">Фильтры</span>
             {hasActiveFilters && !showFilters && (
               <span className="ml-1 px-1.5 py-0.5 bg-white text-dark-blue text-xs rounded-full">
                 ●
@@ -225,18 +252,18 @@ function App() {
 
           <button
             onClick={() => setShowUserManager(true)}
-            className="flex items-center gap-2 bg-dark-blue-hover hover:bg-blue-700 px-4 py-2 rounded-lg transition"
+            className="flex items-center gap-1 md:gap-2 bg-dark-blue-hover hover:bg-blue-700 px-2 md:px-4 py-2 rounded-lg transition"
           >
-            <Users size={20} />
-            <span>Пользователи</span>
+            <Users size={18} className="md:w-5 md:h-5" />
+            <span className="hidden sm:inline">Пользователи</span>
           </button>
 
           <button
             onClick={() => setShowNewBoard(!showNewBoard)}
-            className="flex items-center gap-2 bg-dark-blue-hover hover:bg-blue-700 px-4 py-2 rounded-lg transition"
+            className="flex items-center gap-1 md:gap-2 bg-dark-blue-hover hover:bg-blue-700 px-2 md:px-4 py-2 rounded-lg transition"
           >
-            <Plus size={20} />
-            <span>Новая доска</span>
+            <Plus size={18} className="md:w-5 md:h-5" />
+            <span className="hidden md:inline">Новая доска</span>
           </button>
         </div>
       </header>

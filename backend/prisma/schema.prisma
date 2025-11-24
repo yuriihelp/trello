@@ -48,6 +48,8 @@ model Card {
   comments    Comment[]
   links       Link[]
   assignees   CardAssignee[]
+  relationsFrom CardRelation[] @relation("CardRelationFrom")
+  relationsTo   CardRelation[] @relation("CardRelationTo")
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 
@@ -138,9 +140,31 @@ model CardAssignee {
   @@index([userId])
 }
 
+model CardRelation {
+  id         String       @id @default(uuid())
+  type       RelationType // Type of relation (blocks, blocked_by, relates_to, duplicates, etc.)
+  fromCardId String
+  toCardId   String
+  fromCard   Card         @relation("CardRelationFrom", fields: [fromCardId], references: [id], onDelete: Cascade)
+  toCard     Card         @relation("CardRelationTo", fields: [toCardId], references: [id], onDelete: Cascade)
+  createdAt  DateTime     @default(now())
+
+  @@unique([fromCardId, toCardId, type]) // Prevent duplicate relations
+  @@index([fromCardId])
+  @@index([toCardId])
+}
+
 enum Priority {
   LOW
   MEDIUM
   HIGH
   CRITICAL
+}
+
+enum RelationType {
+  BLOCKS       // This card blocks the other card
+  BLOCKED_BY   // This card is blocked by the other card
+  RELATES_TO   // General relation
+  DUPLICATES   // This card duplicates the other
+  CLONES       // This card clones the other
 }

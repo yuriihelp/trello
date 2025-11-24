@@ -103,3 +103,30 @@ export interface Board {
   createdAt: string;
   updatedAt: string;
 }
+
+export enum RelationType {
+  BLOCKS = 'BLOCKS',
+  BLOCKED_BY = 'BLOCKED_BY',
+  RELATES_TO = 'RELATES_TO',
+  DUPLICATES = 'DUPLICATES',
+  CLONES = 'CLONES'
+}
+
+export interface CardRelationCard {
+  id: string;
+  number: number;
+  boardKey: string;
+  title: string;
+  listId: string;
+  priority: Priority;
+}
+
+export interface CardRelation {
+  id: string;
+  type: RelationType;
+  fromCardId: string;
+  toCardId: string;
+  fromCard?: CardRelationCard;
+  toCard?: CardRelationCard;
+  createdAt: string;
+}

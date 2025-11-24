@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { Card, Priority, User } from '../types';
+import CardRelations from './CardRelations';
 import {
   updateCard,
   deleteCard,
@@ -449,6 +450,9 @@ export default function CardModal({ card, onClose, onRefresh }: Props) {
                 </div>
               </form>
             </div>
+
+            {/* Card Relations */}
+            <CardRelations cardId={card.id} onRefresh={onRefresh} />
           </div>
 
           {/* Sidebar */}

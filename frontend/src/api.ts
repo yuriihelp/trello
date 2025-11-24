@@ -1,4 +1,4 @@
-import type { Board, List, Card, Checklist, ChecklistItem, Comment, Link, Label, Priority, User, CardAssignee } from './types';
+import type { Board, List, Card, Checklist, ChecklistItem, Comment, Link, Label, Priority, User, CardAssignee, CardRelation, RelationType } from './types';
 
 const API_URL = '/api';
 
@@ -277,4 +277,23 @@ export const assignUserToCard = async (userId: string, cardId: string): Promise<
 
 export const unassignUserFromCard = async (userId: string, cardId: string): Promise<void> => {
   await fetch(`${API_URL}/users/${userId}/unassign/${cardId}`, { method: 'DELETE' });
+};
+
+// Card Relations
+export const getCardRelations = async (cardId: string): Promise<{ relationsFrom: CardRelation[]; relationsTo: CardRelation[] }> => {
+  const res = await fetch(`${API_URL}/relations/card/${cardId}`);
+  return res.json();
+};
+
+export const createCardRelation = async (data: { fromCardId: string; toCardId: string; type: RelationType }): Promise<CardRelation> => {
+  const res = await fetch(`${API_URL}/relations`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  return res.json();
+};
+
+export const deleteCardRelation = async (id: string): Promise<void> => {
+  await fetch(`${API_URL}/relations/${id}`, { method: 'DELETE' });
 };

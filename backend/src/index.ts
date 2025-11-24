@@ -9,6 +9,7 @@ import commentRoutes from './routes/comments';
 import linkRoutes from './routes/links';
 import labelRoutes from './routes/labels';
 import userRoutes from './routes/users';
+import relationRoutes from './routes/relations';
 
 dotenv.config();
 
@@ -29,6 +30,7 @@ app.use('/api/comments', commentRoutes);
 app.use('/api/links', linkRoutes);
 app.use('/api/labels', labelRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/relations', relationRoutes);
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   DndContext,
   DragOverlay,
@@ -19,13 +19,27 @@ import CardItem from './CardItem';
 import CardModal from './CardModal';
 import { Plus } from 'lucide-react';
 import { useStore } from '../store';
+import { filterCards, type CardFilters } from '../utils/filterCards';
 
 interface Props {
   board: Board;
   onUpdate: (board: Board) => void;
+  filters?: CardFilters;
 }
 
-export default function BoardView({ board, onUpdate }: Props) {
+export default function BoardView({ board, onUpdate, filters = {} }: Props) {
+  // Filter cards based on current filters
+  const filteredBoard = useMemo(() => {
+    if (!filters || Object.keys(filters).length === 0) return board;
+
+    return {
+      ...board,
+      lists: board.lists.map(list => ({
+        ...list,
+        cards: filterCards(list.cards, filters)
+      }))
+    };
+  }, [board, filters]);
   const [activeCard, setActiveCard] = useState<Card | null>(null);
   const [showNewList, setShowNewList] = useState(false);
   const [newListTitle, setNewListTitle] = useState('');
@@ -171,8 +185,8 @@ export default function BoardView({ board, onUpdate }: Props) {
       >
         <div className="h-full p-4 overflow-x-auto">
           <div className="flex gap-4 h-full">
-            <SortableContext items={board.lists.map((list) => list.id)}>
-              {board.lists.map((list) => (
+            <SortableContext items={filteredBoard.lists.map((list) => list.id)}>
+              {filteredBoard.lists.map((list) => (
                 <ListColumn key={list.id} list={list} onRefresh={refreshBoard} />
               ))}
             </SortableContext>

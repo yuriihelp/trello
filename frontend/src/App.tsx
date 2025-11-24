@@ -1,19 +1,28 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useStore } from './store';
-import { getBoards, createBoard } from './api';
+import { getBoards, createBoard, getUsers } from './api';
 import BoardView from './components/BoardView';
 import BoardSelector from './components/BoardSelector';
 import UserManager from './components/UserManager';
-import { Plus, Users } from 'lucide-react';
+import Filters from './components/Filters';
+import { Plus, Users, Filter as FilterIcon } from 'lucide-react';
+import type { User, Label } from './types';
+import type { CardFilters } from './utils/filterCards';
 
 function App() {
   const { boards, currentBoard, setBoards, setCurrentBoard } = useStore();
   const [showNewBoard, setShowNewBoard] = useState(false);
   const [newBoardTitle, setNewBoardTitle] = useState('');
   const [showUserManager, setShowUserManager] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [users, setUsers] = useState<User[]>([]);
+  const [filters, setFilters] = useState<CardFilters>({
+    dateFilter: 'all',
+  });
 
   useEffect(() => {
     loadBoards();
+    loadUsers();
   }, []);
 
   const loadBoards = async () => {
@@ -21,6 +30,15 @@ function App() {
     setBoards(data);
     if (data.length > 0 && !currentBoard) {
       setCurrentBoard(data[0]);
+    }
+  };
+
+  const loadUsers = async () => {
+    try {
+      const data = await getUsers();
+      setUsers(data);
+    } catch (error) {
+      console.error('Failed to load users:', error);
     }
   };
 
@@ -35,6 +53,30 @@ function App() {
     setShowNewBoard(false);
   };
 
+  // Extract unique labels from current board cards
+  const availableLabels = useMemo<Label[]>(() => {
+    if (!currentBoard) return [];
+
+    const labelMap = new Map<string, Label>();
+    currentBoard.lists.forEach(list => {
+      list.cards.forEach(card => {
+        card.labels?.forEach(label => {
+          if (!labelMap.has(label.id)) {
+            labelMap.set(label.id, label);
+          }
+        });
+      });
+    });
+
+    return Array.from(labelMap.values());
+  }, [currentBoard]);
+
+  const clearFilters = () => {
+    setFilters({ dateFilter: 'all' });
+  };
+
+  const hasActiveFilters = filters.userId || filters.labelId || filters.dateFilter !== 'all' || filters.priority;
+
   return (
     <div className="h-screen flex flex-col bg-board-bg">
       {/* Header */}
@@ -44,6 +86,23 @@ function App() {
         <BoardSelector />
 
         <div className="ml-auto flex items-center gap-2">
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
+              hasActiveFilters || showFilters
+                ? 'bg-blue-600 hover:bg-blue-700'
+                : 'bg-dark-blue-hover hover:bg-blue-700'
+            }`}
+          >
+            <FilterIcon size={20} />
+            <span>Фильтры</span>
+            {hasActiveFilters && !showFilters && (
+              <span className="ml-1 px-1.5 py-0.5 bg-white text-dark-blue text-xs rounded-full">
+                ●
+              </span>
+            )}
+          </button>
+
           <button
             onClick={() => setShowUserManager(true)}
             className="flex items-center gap-2 bg-dark-blue-hover hover:bg-blue-700 px-4 py-2 rounded-lg transition"
@@ -94,7 +153,28 @@ function App() {
       {/* Main Content */}
       <main className="flex-1 overflow-hidden">
         {currentBoard ? (
-          <BoardView board={currentBoard} onUpdate={setCurrentBoard} />
+          <div className="h-full flex flex-col">
+            <div className="flex-shrink-0 overflow-y-auto max-h-64">
+              {showFilters && (
+                <div className="p-4">
+                  <Filters
+                    users={users}
+                    labels={availableLabels}
+                    filters={filters}
+                    onFilterChange={setFilters}
+                    onClearFilters={clearFilters}
+                  />
+                </div>
+              )}
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <BoardView
+                board={currentBoard}
+                onUpdate={setCurrentBoard}
+                filters={filters}
+              />
+            </div>
+          </div>
         ) : (
           <div className="h-full flex items-center justify-center text-gray-500 text-xl">
             {boards.length === 0 ? 'Создайте свою первую доску' : 'Выберите доску'}

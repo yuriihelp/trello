@@ -1,16 +1,16 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useStore } from './store';
-import { getBoards, createBoard, getUsers } from './api';
+import { getBoards, createBoard, updateBoard, getUsers } from './api';
 import BoardView from './components/BoardView';
 import BoardSelector from './components/BoardSelector';
 import UserManager from './components/UserManager';
 import Filters from './components/Filters';
-import { Plus, Users, Filter as FilterIcon } from 'lucide-react';
+import { Plus, Users, Filter as FilterIcon, Edit2, Check, X } from 'lucide-react';
 import type { User, Label } from './types';
 import type { CardFilters } from './utils/filterCards';
 
 function App() {
-  const { boards, currentBoard, setBoards, setCurrentBoard } = useStore();
+  const { boards, currentBoard, setBoards, setCurrentBoard, selectedCard, setSelectedCard } = useStore();
   const [showNewBoard, setShowNewBoard] = useState(false);
   const [newBoardTitle, setNewBoardTitle] = useState('');
   const [showUserManager, setShowUserManager] = useState(false);
@@ -19,11 +19,55 @@ function App() {
   const [filters, setFilters] = useState<CardFilters>({
     dateFilter: 'all',
   });
+  const [editingBoardTitle, setEditingBoardTitle] = useState(false);
+  const [boardTitleInput, setBoardTitleInput] = useState('');
 
+  // Load board from URL on mount
   useEffect(() => {
     loadBoards();
     loadUsers();
   }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const boardId = params.get('board');
+
+    if (boardId && boards.length > 0) {
+      const board = boards.find(b => b.id === boardId);
+      if (board && (!currentBoard || currentBoard.id !== boardId)) {
+        setCurrentBoard(board);
+      }
+    }
+  }, [boards]);
+
+  // Load card from URL on board load
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const cardId = params.get('card');
+
+    if (cardId && currentBoard && !selectedCard) {
+      const card = currentBoard.lists
+        .flatMap(list => list.cards)
+        .find(c => c.id === cardId);
+
+      if (card) {
+        setSelectedCard(card);
+      }
+    }
+  }, [currentBoard]);
+
+  // Update URL when card is opened/closed
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+
+    if (selectedCard) {
+      params.set('card', selectedCard.id);
+    } else {
+      params.delete('card');
+    }
+
+    window.history.pushState({}, '', params.toString() ? `?${params.toString()}` : window.location.pathname);
+  }, [selectedCard]);
 
   const loadBoards = async () => {
     const data = await getBoards();
@@ -49,8 +93,43 @@ function App() {
     const board = await createBoard({ title: newBoardTitle });
     setBoards([...boards, board]);
     setCurrentBoard(board);
+    updateBoardURL(board.id);
     setNewBoardTitle('');
     setShowNewBoard(false);
+  };
+
+  const updateBoardURL = (boardId: string) => {
+    const params = new URLSearchParams(window.location.search);
+    params.set('board', boardId);
+    window.history.pushState({}, '', `?${params.toString()}`);
+  };
+
+  const handleBoardSelect = (board: any) => {
+    setCurrentBoard(board);
+    updateBoardURL(board.id);
+  };
+
+  const handleEditBoardTitle = () => {
+    if (currentBoard) {
+      setBoardTitleInput(currentBoard.title);
+      setEditingBoardTitle(true);
+    }
+  };
+
+  const handleSaveBoardTitle = async () => {
+    if (!currentBoard || !boardTitleInput.trim()) {
+      setEditingBoardTitle(false);
+      return;
+    }
+
+    try {
+      const updatedBoard = await updateBoard(currentBoard.id, { title: boardTitleInput });
+      setBoards(boards.map(b => b.id === updatedBoard.id ? updatedBoard : b));
+      setCurrentBoard(updatedBoard);
+      setEditingBoardTitle(false);
+    } catch (error) {
+      console.error('Failed to update board title:', error);
+    }
   };
 
   // Extract unique labels from current board cards
@@ -83,7 +162,48 @@ function App() {
       <header className="bg-dark-blue text-white p-4 flex items-center gap-4 shadow-md">
         <h1 className="text-2xl font-bold">Task Board</h1>
 
-        <BoardSelector />
+        <BoardSelector onBoardSelect={handleBoardSelect} />
+
+        {/* Editable Board Title */}
+        {currentBoard && (
+          <div className="flex items-center gap-2">
+            {editingBoardTitle ? (
+              <>
+                <input
+                  type="text"
+                  value={boardTitleInput}
+                  onChange={(e) => setBoardTitleInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSaveBoardTitle();
+                    if (e.key === 'Escape') setEditingBoardTitle(false);
+                  }}
+                  className="px-3 py-1 rounded bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  autoFocus
+                />
+                <button
+                  onClick={handleSaveBoardTitle}
+                  className="p-1 hover:bg-blue-700 rounded transition"
+                >
+                  <Check size={18} />
+                </button>
+                <button
+                  onClick={() => setEditingBoardTitle(false)}
+                  className="p-1 hover:bg-blue-700 rounded transition"
+                >
+                  <X size={18} />
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={handleEditBoardTitle}
+                className="flex items-center gap-2 px-3 py-1 hover:bg-blue-700 rounded transition"
+              >
+                <span className="font-semibold">{currentBoard.title}</span>
+                <Edit2 size={16} />
+              </button>
+            )}
+          </div>
+        )}
 
         <div className="ml-auto flex items-center gap-2">
           <button
